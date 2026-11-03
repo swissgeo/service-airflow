@@ -1,6 +1,6 @@
-# template-service-semver-public
+# service-airflow
 
-Template for service-semver public repository for the Swissgeo.
+Airflow image that includes customized FAB behaviour for SSO integration with AWS Cognito.
 
 | Branch | Status |
 |--------|-----------|
