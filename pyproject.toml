@@ -1,0 +1,55 @@
+[project]
+name = "service-airflow"
+version = "0.0.0" # Unused, the image is versioned through git tags
+readme = "README.md"
+# Must match the Python version of the apache/airflow base image (see Dockerfile)
+requires-python = "~=3.13.0"
+# Provided by the apache/airflow base image at runtime, installed locally only for linting,
+# type checking and tests. Keep the versions in sync with the image tag in the Dockerfile.
+dependencies = [
+    "apache-airflow==3.2.2",
+    "apache-airflow-providers-fab==3.6.4",
+    "flask-appbuilder==5.2.1",
+    "pyjwt==2.13.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest~=9.1",
+    "pytest-asyncio~=1.4",
+    "pytest-cov~=7.1",
+    "pytest-xdist~=3.8",
+    "ruff~=0.16",
+    "ty~=0.0",
+]
+
+[tool.uv]
+package = false # Not a package, the files in src/ are copied into the Airflow image
+
+#===============================================================================
+# Ruff
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D",      # pydocstyle
+    "COM812", # Conflicts with the formatter
+    "CPY001", # Copyright notice
+    "INP001", # Standalone modules loaded by Airflow, not a package
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert in tests
+    "ANN201",  # Return type hints in tests
+    "PLR2004", # Magic numbers in tests
+]
+
+#===============================================================================
+# Pytest
+[tool.pytest]
+pythonpath = ["src"]
+testpaths = ["tests"]
