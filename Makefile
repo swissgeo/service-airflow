@@ -21,6 +21,7 @@ PYTHON := $(UV_RUN) python3
 TEST := $(UV_RUN) pytest
 RUFF := $(UV_RUN) ruff
 TY := $(UV_RUN) ty
+PRE_COMMIT := $(UV_RUN) pre-commit
 
 # Docker variables
 DOCKER_REGISTRY := 074597099015.dkr.ecr.eu-central-1.amazonaws.com
@@ -50,6 +51,7 @@ ci:
 .PHONY: setup
 setup:
 	uv sync
+	$(PRE_COMMIT) install
 	# Start a new shell with the virtualenv activated
 	uv run $$SHELL
 
