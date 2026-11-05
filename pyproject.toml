@@ -46,6 +46,7 @@ ignore = [
     "S101",    # assert in tests
     "ANN201",  # Return type hints in tests
     "PLR2004", # Magic numbers in tests
+    "S105",    # Fake secrets in tests
 ]
 
 #===============================================================================

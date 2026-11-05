@@ -28,7 +28,7 @@ AUTH_USER_REGISTRATION = True  # auto-create users on first login
 # good explicitly to set this as it is the default anyway.
 AUTH_USER_REGISTRATION_ROLE = "Public"
 AUTH_ROLES_SYNC_AT_LOGIN = True  # re-sync roles from Cognito groups each login
-PERMANENT_SESSION_LIFETIME = 43200 # 12h
+PERMANENT_SESSION_LIFETIME = 43200  # 12h
 
 AUTH_ROLES_MAPPING = {
     "airflow-admins": ["Admin"],
