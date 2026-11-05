@@ -3,7 +3,7 @@ name = "service-airflow"
 version = "0.0.0" # Unused, the image is versioned through git tags
 readme = "README.md"
 # Must match the Python version of the apache/airflow base image (see Dockerfile)
-requires-python = "~=3.13.0"
+requires-python = "~=3.14.0"
 # Provided by the apache/airflow base image at runtime, installed locally only for linting,
 # type checking and tests. Keep the versions in sync with the image tag in the Dockerfile.
 dependencies = [

@@ -1,4 +1,4 @@
-FROM apache/airflow:3.2.2
+FROM apache/airflow:3.4.0rc2-python3.14
 
 COPY --chown=airflow:0 src/webserver_config.py /opt/airflow/webserver_config.py
 
