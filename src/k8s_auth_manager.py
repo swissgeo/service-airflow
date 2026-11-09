@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 import jwt
@@ -33,13 +34,28 @@ AUDIENCE = os.environ.get("K8S_SA_AUDIENCE", "airflow")
 ALGORITHMS = ["RS256", "ES256"]
 HTTP_TIMEOUT = 5
 
-# Kubernetes service account subject -> Airflow username. The users (and their roles) must be
-# created in Airflow beforehand, tokens of service accounts without an existing user are rejected.
-MACHINE_USERS: dict[str, str] = {
-    "system:serviceaccount:service-processes:service-processes": "service-processes",
-}
+# JSON file: {"<k8s service account subject>": "<airflow username>", ...}
+# The users (and their roles) must be created in Airflow beforehand, tokens of service
+# accounts without an existing user are rejected.
+MACHINE_USERS_FILE = os.environ.get(
+    "K8S_SA_MACHINE_USERS_FILE", "/mnt/secrets-store/aws-secrets-airflow/machine-users.json"
+)
 
 _jwks_client: jwt.PyJWKClient | None = None
+
+
+def _machine_users() -> dict[str, str]:
+    # Read on every call so that secret rotations are picked up without a restart
+    try:
+        with open(MACHINE_USERS_FILE) as f:  # noqa: PTH123
+            users = json.load(f)
+    except OSError, ValueError:
+        log.exception("Cannot read machine users from %s", MACHINE_USERS_FILE)
+        return {}
+    if not isinstance(users, dict):
+        log.error("%s must contain a JSON object", MACHINE_USERS_FILE)
+        return {}
+    return users
 
 
 def _discover_jwks_url() -> str:
@@ -77,6 +93,18 @@ def _verify(token: str) -> dict[str, Any] | None:
 
 
 class K8sFabAuthManager(FabAuthManager):
+    def init(self) -> None:
+        super().init()
+        if not ISSUER.startswith("https://"):
+            msg = f"K8S_SA_ISSUER must be set to an https URL, got '{ISSUER}'"
+            raise RuntimeError(msg)
+        if not len(AUDIENCE) > 0:
+            msg = "K8S_SA_AUDIENCE must be set"
+            raise RuntimeError(msg)
+        if not Path(MACHINE_USERS_FILE).is_file():
+            msg = f"K8S_SA_MACHINE_USERS_FILE '{MACHINE_USERS_FILE}' does not exist"
+            raise RuntimeError(msg)
+
     def create_token(self, headers: dict[str, str], body: dict[str, Any]) -> Any:  # noqa: ANN401
         auth = next((v for k, v in headers.items() if k.lower() == "authorization"), "")
         if not auth.lower().startswith("bearer "):
@@ -87,7 +115,7 @@ class K8sFabAuthManager(FabAuthManager):
         if claims is None:
             return None
 
-        username = MACHINE_USERS.get(claims["sub"])
+        username = _machine_users().get(claims["sub"])
         if username is None:
             log.warning("Unknown service account %s", claims["sub"])
             return None
