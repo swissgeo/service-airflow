@@ -1,4 +1,4 @@
-FROM apache/airflow:3.4.0rc2-python3.14
+FROM apache/airflow:3.4.0-python3.14
 
 COPY --chown=airflow:0 src/webserver_config.py /opt/airflow/webserver_config.py
 COPY --chown=airflow:0 src/k8s_auth_manager.py /opt/airflow/custom/k8s_auth_manager.py
